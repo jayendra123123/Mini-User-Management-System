@@ -152,7 +152,8 @@ const UserDashboard = ({ user, onLogout }) => {
     try {
       await changePassword({
         currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword
+        newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.confirmPassword
       });
       setPasswordSuccess('Password changed successfully!');
       toast.success('Password changed successfully!');
@@ -182,7 +183,7 @@ const UserDashboard = ({ user, onLogout }) => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#1a232d]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/30">
                 <span className="material-symbols-outlined text-white text-[24px] sm:!text-[28px]">manage_accounts</span>
@@ -193,7 +194,7 @@ const UserDashboard = ({ user, onLogout }) => {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 ml-auto">
               <button 
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 sm:p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-gray-600 dark:text-gray-400 hover:scale-105 active:scale-95 touch-manipulation"

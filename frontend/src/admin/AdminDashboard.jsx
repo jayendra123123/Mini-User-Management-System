@@ -219,33 +219,33 @@ const AdminDashboard = ({ user, onLogout }) => {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
               <button 
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 title="Toggle theme"
               >
-                <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">
+                <span className="material-symbols-outlined text-gray-600 dark:text-gray-400 text-[20px] sm:text-[22px]">
                   {isDarkMode ? 'light_mode' : 'dark_mode'}
                 </span>
               </button>
               
-              <div className="flex items-center gap-3 pl-3 border-l border-gray-300 dark:border-gray-600">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center shadow-md">
-                    <span className="material-symbols-outlined text-white text-[20px]">person</span>
+              <div className="flex items-center gap-1.5 sm:gap-3 pl-1.5 sm:pl-3 border-l border-gray-300 dark:border-gray-600">
+                <div className="flex items-center gap-1.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-sky-500 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white text-[18px] sm:text-[20px]">person</span>
                   </div>
-                  <div className="hidden md:block text-right">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.fullName}</p>
-                    <p className="text-xs text-sky-600 dark:text-sky-400">Admin</p>
+                  <div className="hidden sm:block text-right">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">{user.fullName}</p>
+                    <p className="text-[10px] sm:text-xs text-sky-600 dark:text-sky-400">Admin</p>
                   </div>
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
+                  className="p-1.5 sm:p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
                   title="Logout"
                 >
-                  <span className="material-symbols-outlined text-[20px]">logout</span>
+                  <span className="material-symbols-outlined text-[18px] sm:text-[20px]">logout</span>
                 </button>
               </div>
             </div>
@@ -352,11 +352,68 @@ const AdminDashboard = ({ user, onLogout }) => {
               {loading ? (
                 <div className="p-12 text-center text-gray-500">Loading users...</div>
               ) : (
-                <UserTable 
-                  users={users} 
-                  onToggleStatus={handleToggleStatus}
-                  onDelete={handleDelete}
-                />
+                <>
+                  <UserTable 
+                    users={users} 
+                    onToggleStatus={handleToggleStatus}
+                    onDelete={handleDelete}
+                  />
+                  
+                  {/* Pagination */}
+                  {pagination.pages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 gap-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Showing <span className="font-semibold text-gray-900 dark:text-white">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
+                        <span className="font-semibold text-gray-900 dark:text-white">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
+                        <span className="font-semibold text-gray-900 dark:text-white">{pagination.total}</span> users
+                      </p>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                          disabled={pagination.page === 1}
+                          className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        
+                        {[...Array(pagination.pages)].map((_, index) => {
+                          const pageNum = index + 1;
+                          if (
+                            pageNum === 1 ||
+                            pageNum === pagination.pages ||
+                            (pageNum >= pagination.page - 1 && pageNum <= pagination.page + 1)
+                          ) {
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setPagination(prev => ({ ...prev, page: pageNum }))}
+                                className={`flex items-center justify-center w-9 h-9 rounded-lg font-medium text-sm transition-all ${
+                                  pagination.page === pageNum
+                                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30'
+                                    : 'border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          } else if (pageNum === pagination.page - 2 || pageNum === pagination.page + 2) {
+                            return <span key={pageNum} className="text-gray-500 dark:text-gray-400">...</span>;
+                          }
+                          return null;
+                        })}
+                        
+                        <button
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                          disabled={pagination.page === pagination.pages}
+                          className="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             </div>

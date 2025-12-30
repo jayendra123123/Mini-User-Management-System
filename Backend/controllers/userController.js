@@ -82,16 +82,30 @@ exports.updateProfile = async (req, res, next) => {
 // @access  Private
 exports.changePassword = async (req, res, next) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Log request for debugging
+    console.log('📍 Password change request received');
+    console.log('Current password provided:', !!currentPassword);
+    console.log('New password provided:', !!newPassword);
+    console.log('Confirm password provided:', !!confirmPassword);
 
     // Get user with password
     const user = await User.findById(req.user.id).select('+password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     // Check current password
     const isPasswordMatch = await user.comparePassword(currentPassword);
 
     if (!isPasswordMatch) {
-      return res.status(401).json({
+      console.log('❌ Current password is incorrect');
+      return res.status(400).json({
         success: false,
         message: 'Current password is incorrect'
       });
@@ -101,11 +115,14 @@ exports.changePassword = async (req, res, next) => {
     user.password = newPassword;
     await user.save();
 
+    console.log('✅ Password changed successfully');
+
     res.status(200).json({
       success: true,
       message: 'Password changed successfully'
     });
   } catch (error) {
+    console.error('🔴 Password change error:', error.message);
     next(error);
   }
 };
