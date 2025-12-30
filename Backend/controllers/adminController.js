@@ -47,6 +47,7 @@ exports.getAllUsers = async (req, res, next) => {
       page,
       pages: Math.ceil(total / limit),
       users: users.map(user => ({
+        _id: user._id,
         id: user._id,
         fullName: user.fullName,
         email: user.email,
