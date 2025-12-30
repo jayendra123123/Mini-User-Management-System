@@ -1,27 +1,19 @@
 const User = require('../models/User');
-
-// @desc    Get all users with pagination
-// @route   GET /api/admin/users
-// @access  Private/Admin
 exports.getAllUsers = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
     // Build query
     const query = {};
-    
     // Filter by role
     if (req.query.role && req.query.role !== 'all') {
       query.role = req.query.role;
     }
-
     // Filter by status
     if (req.query.status) {
       query.status = req.query.status;
     }
-
     // Search by name or email
     if (req.query.search) {
       query.$or = [
@@ -29,17 +21,14 @@ exports.getAllUsers = async (req, res, next) => {
         { email: { $regex: req.query.search, $options: 'i' } }
       ];
     }
-
     // Get users
     const users = await User.find(query)
       .select('-password')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-
     // Get total count
     const total = await User.countDocuments(query);
-
     res.status(200).json({
       success: true,
       count: users.length,
@@ -62,21 +51,15 @@ exports.getAllUsers = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Get single user
-// @route   GET /api/admin/users/:id
-// @access  Private/Admin
 exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
-
     res.status(200).json({
       success: true,
       user: {
@@ -94,10 +77,6 @@ exports.getUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Activate user account
-// @route   PUT /api/admin/users/:id/activate
-// @access  Private/Admin
 exports.activateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -133,10 +112,6 @@ exports.activateUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Deactivate user account
-// @route   PUT /api/admin/users/:id/deactivate
-// @access  Private/Admin
 exports.deactivateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -180,10 +155,6 @@ exports.deactivateUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Delete user
-// @route   DELETE /api/admin/users/:id
-// @access  Private/Admin
 exports.deleteUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -213,10 +184,6 @@ exports.deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
-// @desc    Get user statistics
-// @route   GET /api/admin/stats
-// @access  Private/Admin
 exports.getStats = async (req, res, next) => {
   try {
     const totalUsers = await User.countDocuments();
