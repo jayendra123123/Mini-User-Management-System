@@ -1,5 +1,6 @@
 import './App.css';
 import { useState, useEffect } from 'react';
+import { ToastProvider } from './component/ToastContext';
 import LoginLayout from './component/LoginLayout';
 import RegistrationPortal from './component/RegistrationPortal';
 import UserDashboard from './component/UserDashboard';
@@ -52,27 +53,33 @@ function App() {
 
   // If user is logged in, show appropriate dashboard based on role
   if (user) {
-    if (user.role === 'admin') {
-      return <AdminDashboard user={user} onLogout={handleLogout} />;
-    } else {
-      return <UserDashboard user={user} onLogout={handleLogout} />;
-    }
+    return (
+      <ToastProvider>
+        {user.role === 'admin' ? (
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        ) : (
+          <UserDashboard user={user} onLogout={handleLogout} />
+        )}
+      </ToastProvider>
+    );
   }
   
   // Otherwise show login or registration
   return (
-    <div className="App">
-      {showRegistration ? 
-        <RegistrationPortal 
-          onSwitchToLogin={() => setShowRegistration(false)} 
-          onSignupSuccess={handleSignup}
-        /> : 
-        <LoginLayout 
-          onSwitchToRegister={() => setShowRegistration(true)}
-          onLoginSuccess={handleLogin}
-        />
-      }
-    </div>
+    <ToastProvider>
+      <div className="App">
+        {showRegistration ? 
+          <RegistrationPortal 
+            onSwitchToLogin={() => setShowRegistration(false)} 
+            onSignupSuccess={handleSignup}
+          /> : 
+          <LoginLayout 
+            onSwitchToRegister={() => setShowRegistration(true)}
+            onLoginSuccess={handleLogin}
+          />
+        }
+      </div>
+    </ToastProvider>
   );
 }
 

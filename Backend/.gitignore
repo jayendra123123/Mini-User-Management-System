@@ -2,3 +2,9 @@ node_modules/
 .env
 .DS_Store
 *.log
+coverage/
+.vercel
+dist/
+build/
+*.test.js.snap
+

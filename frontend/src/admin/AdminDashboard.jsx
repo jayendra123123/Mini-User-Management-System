@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import UserTable from './UserTable';
 import { getAllUsers, activateUser, deactivateUser, deleteUser, getStats } from '../services/adminService';
 import { logout } from '../services/authService';
+import { useToast } from '../component/ToastContext';
 
 const AdminDashboard = ({ user, onLogout }) => {
+  const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,6 +69,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       }));
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch users', 4000);
     } finally {
       setLoading(false);
     }
@@ -79,14 +82,15 @@ const AdminDashboard = ({ user, onLogout }) => {
       setStats(statsData);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch statistics', 4000);
     }
   };
 
   const statsDisplay = [
-    { label: 'Total Users', value: (stats.totalUsers || 0).toString(), icon: 'group', color: 'bg-sky-500', change: '+12%' },
-    { label: 'Active Users', value: (stats.activeUsers || 0).toString(), icon: 'trending_up', color: 'bg-sky-600', change: '+5%' },
-    { label: 'Admins', value: (stats.adminUsers || 0).toString(), icon: 'admin_panel_settings', color: 'bg-sky-700', change: '+2' },
-    { label: 'New This Week', value: (stats.newUsersThisWeek || 0).toString(), icon: 'person_add', color: 'bg-sky-400', change: '+3' },
+    { label: 'Total Users', value: stats.totalUsers || 0, icon: 'group', color: 'bg-sky-500', change: '+12%' },
+    { label: 'Active Users', value: stats.activeUsers || 0, icon: 'trending_up', color: 'bg-sky-600', change: '+5%' },
+    { label: 'Admins', value: stats.adminUsers || 0, icon: 'admin_panel_settings', color: 'bg-sky-700', change: '+2' },
+    { label: 'New This Week', value: stats.newUsersThisWeek || 0, icon: 'person_add', color: 'bg-sky-400', change: '+3' },
   ];
 
   const handleToggleStatus = async (userId) => {
@@ -102,9 +106,10 @@ const AdminDashboard = ({ user, onLogout }) => {
       // Refresh users
       await fetchUsers();
       await fetchStats();
+      toast.success('User status updated successfully');
     } catch (error) {
       console.error('Error toggling status:', error);
-      alert(error.response?.data?.message || 'Failed to update user status');
+      toast.error(error.response?.data?.message || 'Failed to update user status', 5000);
     }
   };
 
@@ -114,9 +119,10 @@ const AdminDashboard = ({ user, onLogout }) => {
         await deleteUser(userId);
         await fetchUsers();
         await fetchStats();
+        toast.success('User deleted successfully');
       } catch (error) {
         console.error('Error deleting user:', error);
-        alert(error.response?.data?.message || 'Failed to delete user');
+        toast.error(error.response?.data?.message || 'Failed to delete user', 5000);
       }
     }
   };
@@ -124,9 +130,11 @@ const AdminDashboard = ({ user, onLogout }) => {
   const handleLogout = async () => {
     try {
       await logout();
+      toast.success('Logged out successfully');
       onLogout();
     } catch (error) {
       console.error('Logout error:', error);
+      toast.error('Logout failed, clearing session...', 3000);
       onLogout(); // Logout anyway on frontend
     }
   };
@@ -138,78 +146,117 @@ const AdminDashboard = ({ user, onLogout }) => {
     return matchesSearch && matchesRole;
   });
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-background-dark dark:to-[#0a0e13] transition-colors">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#1a232d]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/30">
-                <span className="material-symbols-outlined text-white text-[24px] sm:!text-[28px]">admin_panel_settings</span>
-              </div>
+    <div className="flex h-screen bg-gray-50 dark:bg-background-dark overflow-hidden">
+      {/* Left Sidebar - Desktop */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a232d] border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        {/* Logo */}
+        <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="w-9 h-9 rounded-lg bg-sky-500 flex items-center justify-center mr-3">
+            <span className="material-symbols-outlined text-white text-[22px]">admin_panel_settings</span>
+          </div>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Admin Panel</h2>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6 px-4">
+          <div className="space-y-2">
+            {[
+              { id: 'overview', label: 'Overview', icon: 'dashboard' },
+              { id: 'users', label: 'Users', icon: 'group' },
+              { id: 'settings', label: 'Settings', icon: 'settings' }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === item.id
+                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
+                <span className="font-semibold">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* User Info */}
+        
+      </aside>
+
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <header className="h-16 bg-white dark:bg-[#1a232d] border-b border-gray-200 dark:border-gray-800 shadow-sm">
+          <div className="h-full px-4 sm:px-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              >
+                <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">menu</span>
+              </button>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Welcome back, <span className="font-semibold text-sky-600 dark:text-sky-400">{user.fullName}</span></p>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {activeTab === 'overview' && 'Dashboard Overview'}
+                  {activeTab === 'users' && 'User Management'}
+                  {activeTab === 'settings' && 'Settings'}
+                </h1>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 sm:p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-gray-600 dark:text-gray-400 hover:scale-105 active:scale-95 touch-manipulation"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 title="Toggle theme"
               >
-                <span className="material-symbols-outlined text-[20px] sm:text-[22px]">
+                <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">
                   {isDarkMode ? 'light_mode' : 'dark_mode'}
                 </span>
               </button>
               
-              <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l-2 border-gray-300 dark:border-gray-700">
-                <div className="text-right hidden md:block">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.fullName}</p>
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <span className="inline-block w-2 h-2 rounded-full bg-sky-500"></span>
-                    <p className="text-xs text-sky-600 dark:text-sky-400 capitalize font-medium">Administrator</p>
+              <div className="flex items-center gap-3 pl-3 border-l border-gray-300 dark:border-gray-600">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center shadow-md">
+                    <span className="material-symbols-outlined text-white text-[20px]">person</span>
                   </div>
-                </div>
-                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/30">
-                  <span className="material-symbols-outlined text-white text-[20px] sm:text-[22px]">admin_panel_settings</span>
+                  <div className="hidden md:block text-right">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.fullName}</p>
+                    <p className="text-xs text-sky-600 dark:text-sky-400">Admin</p>
+                  </div>
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="p-2 sm:p-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400 hover:scale-105 active:scale-95 touch-manipulation"
+                  className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
                   title="Logout"
                 >
-                  <span className="material-symbols-outlined text-[20px] sm:text-[22px]">logout</span>
+                  <span className="material-symbols-outlined text-[20px]">logout</span>
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-3 sm:p-6">
-        {/* Navigation Tabs */}
-        <div className="mb-6 sm:mb-8 flex gap-1 sm:gap-2 bg-white dark:bg-[#1a232d] rounded-xl p-1.5 sm:p-2 shadow-md border border-gray-200 dark:border-gray-800">
-          {['overview', 'users', 'settings'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 px-3 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold capitalize transition-all rounded-lg touch-manipulation ${
-                activeTab === tab
-                  ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
 
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {statsDisplay.map((stat, index) => (
@@ -249,10 +296,10 @@ const AdminDashboard = ({ user, onLogout }) => {
               />
             </div>
           </div>
-        )}
+          )}
 
-        {activeTab === 'users' && (
-          <div className="space-y-6">
+          {activeTab === 'users' && (
+            <div className="space-y-6">
             {/* Search and Filter */}
             <div className="bg-white dark:bg-[#1a232d] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-6">
               <div className="flex flex-col md:flex-row gap-4">
@@ -312,11 +359,11 @@ const AdminDashboard = ({ user, onLogout }) => {
                 />
               )}
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
-        {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-[#1a232d] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8">
+            {activeTab === 'settings' && (
+            <div className="bg-white dark:bg-[#1a232d] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center">
                 <span className="material-symbols-outlined text-white text-[24px]">settings</span>
@@ -343,12 +390,13 @@ const AdminDashboard = ({ user, onLogout }) => {
                 </label>
                 <div className="flex items-center gap-3 px-4 py-3 border-2 border-sky-300 dark:border-sky-600 rounded-xl bg-sky-50 dark:bg-sky-900/20">
                   <span className="inline-block w-3 h-3 rounded-full bg-sky-500"></span>
-                  <span className="text-gray-900 dark:text-white font-bold">Administrator</span>
+                  <span className="text-gray-900 dark:text-white font-bold">Admin</span>
                 </div>
               </div>
             </div>
           </div>
-        )}
+          )}
+        </main>
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getProfile, updateProfile, changePassword } from '../services/userService';
 import { getStats } from '../services/adminService';
+import { useToast } from './ToastContext';
 
 const UserDashboard = ({ user, onLogout }) => {
+  const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState(user);
@@ -79,6 +81,7 @@ const UserDashboard = ({ user, onLogout }) => {
       ]);
     } catch (error) {
       console.error('Error fetching user data:', error);
+      toast.error(error.response?.data?.message || 'Failed to load user data', 5000);
     } finally {
       setLoading(false);
     }
@@ -109,6 +112,7 @@ const UserDashboard = ({ user, onLogout }) => {
       setProfile(updatedProfile);
       setIsEditing(false);
       setSaveSuccess('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       
       // Update localStorage to keep data in sync
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -116,7 +120,9 @@ const UserDashboard = ({ user, onLogout }) => {
       
       setTimeout(() => setSaveSuccess(null), 3000);
     } catch (error) {
-      setSaveError(error.response?.data?.message || 'Failed to update profile');
+      const errorMsg = error.response?.data?.message || 'Failed to update profile';
+      setSaveError(errorMsg);
+      toast.error(errorMsg, 5000);
     } finally {
       setSaveLoading(false);
     }
@@ -128,12 +134,16 @@ const UserDashboard = ({ user, onLogout }) => {
     setPasswordSuccess(null);
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New passwords do not match');
+      const errorMsg = 'New passwords do not match';
+      setPasswordError(errorMsg);
+      toast.error(errorMsg, 4000);
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      const errorMsg = 'Password must be at least 6 characters';
+      setPasswordError(errorMsg);
+      toast.error(errorMsg, 4000);
       return;
     }
 
@@ -145,13 +155,16 @@ const UserDashboard = ({ user, onLogout }) => {
         newPassword: passwordForm.newPassword
       });
       setPasswordSuccess('Password changed successfully!');
+      toast.success('Password changed successfully!');
       setTimeout(() => {
         setShowResetPasswordModal(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         setPasswordSuccess(null);
       }, 2000);
     } catch (error) {
-      setPasswordError(error.response?.data?.message || 'Failed to change password');
+      const errorMsg = error.response?.data?.message || 'Failed to change password';
+      setPasswordError(errorMsg);
+      toast.error(errorMsg, 5000);
     } finally {
       setPasswordLoading(false);
     }

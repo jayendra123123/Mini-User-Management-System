@@ -26,6 +26,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log error details for debugging
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('🔴 API ERROR:');
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('📍 Endpoint:', error.config?.method?.toUpperCase(), error.config?.url);
+    console.error('❌ Status:', error.response?.status);
+    console.error('💬 Message:', error.response?.data?.message || error.message);
+    if (error.response?.data?.error) {
+      console.error('🔍 Details:', error.response.data.error);
+    }
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');

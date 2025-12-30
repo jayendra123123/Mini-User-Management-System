@@ -34,5 +34,5 @@ export const deleteUser = async (userId) => {
 // Get statistics
 export const getStats = async () => {
   const response = await api.get('/admin/stats');
-  return response.data;
+  return response.data.stats;
 };

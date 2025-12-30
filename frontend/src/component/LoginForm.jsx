@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { login } from '../services/authService';
+import { useToast } from './ToastContext';
 
 const LoginForm = ({ onSwitchToRegister, onLoginSuccess }) => {
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,9 @@ const LoginForm = ({ onSwitchToRegister, onLoginSuccess }) => {
       }
     } catch (err) {
       setIsLoading(false);
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage, 5000);
     }
   };
 

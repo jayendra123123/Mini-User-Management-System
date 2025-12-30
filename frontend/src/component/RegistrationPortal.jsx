@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { getWelcomeGreeting } from '../services/geminiService.js';
 import { signup } from '../services/authService';
 import InputGroup from './InputGroup.jsx';
+import { useToast } from './ToastContext';
 
 const RegistrationPortal = ({ onSwitchToLogin, onSignupSuccess }) => {
+  const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -54,7 +56,9 @@ const RegistrationPortal = ({ onSwitchToLogin, onSignupSuccess }) => {
     setError(null);
     
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match!");
+      const errorMsg = "Passwords don't match!";
+      setError(errorMsg);
+      toast.error(errorMsg, 4000);
       return;
     }
 
@@ -78,7 +82,9 @@ const RegistrationPortal = ({ onSwitchToLogin, onSignupSuccess }) => {
       }
     } catch (err) {
       setIsSubmitting(false);
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage, 5000);
     }
   };
 
