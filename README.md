@@ -11,6 +11,11 @@ Full-stack user management with JWT authentication, role-based access, and admin
 **Tech Stack:** Node.js • Express • MongoDB • Mongoose • React • Tailwind CSS • JWT • bcrypt
 
 ---
+<p align="center">
+  <img src="frontend/public/image.png" width="500" alt="Food Donation Platform"/>
+</p>
+
+---
 
 ## 🔧 Quick Setup
 
@@ -222,10 +227,6 @@ npm run test:watch               # Watch mode
 
 ## 📄 Info
 
-**License:** ISC | **Author:** Your Name | **Contact:** your-email@example.com
+**Author:** Malla Jayendra | **Contact:** jayendramalla26@gmail.com
 
 **Acknowledgments:** [Express](https://expressjs.com/) • [React](https://react.dev/) • [MongoDB](https://mongodb.com/) • [Tailwind](https://tailwindcss.com/)
-
----
-
-✅ **100% Complete & Production-Ready** | Made with ❤️ | ⭐ Star if helpful!
